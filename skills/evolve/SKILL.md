@@ -38,7 +38,7 @@ Same discipline as at creation (the `design` skill): `get_permissions` first, sp
 
 ## CEL can do more than equality
 
-Constraints, defaults, calculations, rules, and permissions all take Cairn-extended CEL — profile-gated access (`_profile.is_supervisor == true`), geo fences (`location.inside(zone)`), date windows (`visit_date.diffDays(today()) < 30`), tree relations (`area.isDescendantOf(region)`). `get_guide('cel')` lists the full catalog; read the collection's `celContext` and `validate_cel_expression` before proposing any of it.
+Constraints, defaults, calculations, rules, and permissions all take Cairn-extended CEL — profile-gated access (`_profile.is_supervisor == true`), geo fences (`location.inside(zone)`), date windows (`visit_date >= today().subtractDays(30)`), tree relations (`area.isDescendantOf(region)`). `get_guide('cel')` lists the full catalog; read the collection's `celContext` and `validate_cel_expression` before proposing any of it.
 
 ## Don't
 
