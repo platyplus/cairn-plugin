@@ -55,7 +55,7 @@ For each created collection, synthesize a few realistic rows from the use case a
 
 ## CEL is Cairn-extended, not standard
 
-Rule conditions and `x-constraint`s use Cairn-extended CEL: reference field names directly; `select`/`oneOf` fields resolve to `{ value, name }`, so compare `.value` (e.g. `status.value == 'draft'`); geo/temporal helpers exist (`point.inside()`, `distance()`). Before committing any non-trivial expression, read the collection's `celContext` and check it with `validate_cel_expression` — don't guess signatures. There is more on offer than equality checks — date windows, geo fences, tree relations, profile-gated rules — `get_guide('cel')` lists the full catalog with worked idioms; mention the fitting ones when the use case calls for them.
+Rule conditions and `x-constraint`s use Cairn-extended CEL: reference field names directly; `select`/`oneOf` fields resolve to `{ value, name }`, so compare `.value` (e.g. `status.value == 'draft'`); geo/temporal helpers exist (`point.inside()`, `point.distanceTo(point)`). Before committing any non-trivial expression, read the collection's `celContext` and check it with `validate_cel_expression` — don't guess signatures. There is more on offer than equality checks — date windows, geo fences, tree relations, profile-gated rules — `get_guide('cel')` lists the full catalog with worked idioms; mention the fitting ones when the use case calls for them.
 
 ## Grounding
 
