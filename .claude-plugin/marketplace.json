@@ -1,0 +1,20 @@
+{
+  "name": "platyplus",
+  "owner": {
+    "name": "Platyplus",
+    "url": "https://platyplus.io"
+  },
+  "plugins": [
+    {
+      "name": "cairn",
+      "source": "./claude",
+      "description": "Drive Cairn from Claude — design data collections, import and capture records, and explore them as tables, charts, and maps. Schema-driven, offline-first data for humanitarian and field teams.",
+      "version": "0.3.0",
+      "license": "MIT",
+      "author": {
+        "name": "Platyplus",
+        "url": "https://platyplus.io"
+      }
+    }
+  ]
+}

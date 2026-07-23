@@ -1,0 +1,22 @@
+{
+  "name": "example_facility_survey",
+  "title": "Example: Facility survey",
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string", "title": "Name" },
+      "facility_type": {
+        "type": "string",
+        "title": "Type",
+        "oneOf": [
+          { "const": "hospital", "title": "Hospital" },
+          { "const": "clinic", "title": "Clinic" },
+          { "const": "health_post", "title": "Health post" }
+        ]
+      },
+      "location": { "$ref": "#/$defs/Point", "title": "GPS location" },
+      "beds": { "type": "integer", "minimum": 0, "title": "Number of beds" }
+    },
+    "required": ["name", "facility_type"]
+  }
+}
