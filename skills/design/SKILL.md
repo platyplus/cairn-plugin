@@ -10,7 +10,7 @@ Take "I want to track …" — one thing, or everything a project needs — to b
 **Size the ask first.** One kind of thing → the **short path**: draft → preview → agree → build & check, four beats, no itinerary, no map, no breadcrumbs. Several kinds of things (or attachments implying them) → the **project path**. If intake changes the size, switch paths and say so. Ceremony is earned by scale, never applied by default.
 
 <HARD-GATE>
-Nothing that writes (`create_collection`, `set_permissions`, `update_data_schema`) is called until the plan has been shown in this conversation and the user explicitly said yes — for the project path, the complete re-rendered plan and one explicit go. Permission changes each need their own yes, at every size. No example record is ever saved — checks go through `dry_run_create_records` only.
+Nothing that writes (`create_collection`, `commit_xlsform_import`, `set_permissions`, `update_data_schema`) is called until the plan has been shown in this conversation and the user explicitly said yes — for the project path, the complete re-rendered plan and one explicit go. Permission changes each need their own yes, at every size. No example record is ever saved — checks go through `dry_run_create_records` only.
 </HARD-GATE>
 
 ## The short path (one collection)
@@ -24,7 +24,7 @@ Nothing that writes (`create_collection`, `set_permissions`, `update_data_schema
 
 Open by showing the itinerary; keep a one-line breadcrumb on every message (e.g. *"Setup 3/5 — the case form"*). Every message ends with the step's refreshed visual and exactly one question. Off-path requests go to a visible **after-setup list** — acknowledge, park, return; hand them off at the end (`ingest` for imports, `explore` for questions, the Cairn app for the rest).
 
-1. **Tell me about it.** The use case in their words, plus an invitation to show what they have — a photo of the paper form or register, a spreadsheet, an XLSForm (route XLSForm files to `import_xlsform`). Read reality before planning: `list_collections`, and `get_data_schema` for anything the plan may link to.
+1. **Tell me about it.** The use case in their words, plus an invitation to show what they have — a photo of the paper form or register, a spreadsheet, an XLSForm (import it — see **Importing an XLSForm**). Read reality before planning: `list_collections`, and `get_data_schema` for anything the plan may link to.
 2. **The map.** Propose the smallest set of collections and links that supports what people will actually enter next week. Before presenting, self-review: every collection, link, and field must trace to something the user said or attached — cut or park what doesn't. Columns extracted from documents get triaged: propose, ask, or park as legacy. Show the map as a small diagram (mermaid; existing collections grey, proposed ones highlighted — where diagrams don't render, an indented list). Everything cut or postponed goes on the after-setup list, visibly.
 3. **Each form.** One collection at a time, using the short path's beats 1–2. After ~3 rounds on the same detail, offer to move on — *"we can refine this anytime later."*
 4. **Who sees what.** Asked once for the whole project, in plain sentences (*"everyone on the project can see records; people edit only their own; new entries wait for approval"*), with per-collection exceptions only if the user raises them. Recommend the supervised model — new entries wait for approval — as the default; drop it without argument if declined. Offer **profile fields** here too — *"anything you want to track about your team members themselves (role, area, qualifications)?"* — a member-profile collection (`create_collection` with `kind: 'member_profile'`, at most one per project); its fields then power permissions via `_profile`.
@@ -53,9 +53,17 @@ For each created collection, synthesize a few realistic rows from the use case a
 
 `render_collection_form` validates the rule. (Editing rules *later* in the app's simple Builder needs expert mode — but creating a collection that already has them does not.)
 
+## Importing an XLSForm
+
+An uploaded XLSForm *is* a collection draft — never retype it by hand.
+
+1. **Draft.** `import_xlsform` (with the uploaded file's id) returns `{ dataSchema, uiSchema, summary }`, skip-logic already translated to CEL rules. `status: "blocked"` lists constructs Cairn doesn't support yet (with tracking issues) and yields no partial schema; `status: "invalid"` is a malformed workbook — report either plainly, don't paper over it.
+2. **Preview and agree.** `render_collection_form` on the draft, then the gate as usual. A **cascading select** (choice_filter) also returns a `plan` of hierarchy-tree collections — say that the import will create those alongside the form.
+3. **Commit on the yes.** With a `plan` → `commit_xlsform_import`, passing the draft's `dataSchema`, `uiSchema`, and `plan` back verbatim (it builds the tree collection(s) + the form's leveled reference). No `plan` → plain `create_collection`. Then run the checks.
+
 ## CEL is Cairn-extended, not standard
 
-Rule conditions and `x-constraint`s use Cairn-extended CEL: reference field names directly; `select`/`oneOf` fields resolve to `{ value, name }`, so compare `.value` (e.g. `status.value == 'draft'`); geo/temporal helpers exist (`point.inside()`, `point.distanceTo(point)`). Before committing any non-trivial expression, read the collection's `celContext` and check it with `validate_cel_expression` — don't guess signatures. There is more on offer than equality checks — date windows, geo fences, tree relations, profile-gated rules, device-location capture (a Point field can default to the current position with `x-default: _location`) — `get_guide('cel')` lists the full catalog with worked idioms; mention the fitting ones when the use case calls for them.
+Rule conditions and `x-constraint`s use Cairn-extended CEL: reference field names directly; `select`/`oneOf` fields resolve to `{ value, name }`, so compare `.value` (e.g. `status.value == 'draft'`); geo/temporal helpers exist (`point.inside()`, `point.distanceTo(point)`). Before committing any non-trivial expression, read the collection's `celContext` and check it with `validate_cel_expression` — don't guess signatures. There is more on offer than equality checks — date windows, geo fences, tree relations, profile-gated rules, device-location capture (a Point field can default to the current position with `x-default: _location`), line geometry (a **LineString** field captures a drawn route or boundary; `line.length()` reads its length) — `get_guide('cel')` lists the full catalog with worked idioms; mention the fitting ones when the use case calls for them.
 
 ## Grounding
 
