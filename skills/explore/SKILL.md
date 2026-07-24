@@ -13,11 +13,12 @@ Answer a question about an existing collection with the right read: a **table** 
 2. **Classify the question → the right read.**
    - "show me / list / which rows" → **`query_records`** (a table).
    - "how many / count / top N / breakdown by / trend over time" → **`aggregate_records`** (grouped metrics; it also returns a chart-spec + `chartType`).
-3. **Select fields explicitly — never omit `fields`, and keep the set small.** Two reasons:
-   - *Correctness:* a default projection can include a heavy geometry/blob or a calculated column and **fail the whole read**.
-   - *Legibility:* a table is only useful if the human can read it. Project the **few columns the question is about** (~5–7) plus what identifies a row — not every column. Leading with a whole wide schema renders as a cramped, sideways-scrolling wall of one-character cells; a focused table reads at a glance. (The widget scrolls fine now — this is about focus, not capacity.)
+3. **Select fields explicitly — name the columns the question is about (~5–7) plus what identifies a row.** If you omit `fields`, the server falls back to a **capped, ranked default** — the identity field first, then the columns your `filter`/`orderBy` name, then the rest, at most 8 — and tells the reader "showing N of M columns." That default keeps a wide collection legible instead of walling, but it's a generic guess, not your answer:
+   - *Focus:* lead with the fields the question names — asked "which cases were referred?" → case id + outcome + a couple of relevant fields, not the whole schema. A focused table reads at a glance.
+   - *Correctness:* an explicit pick also sidesteps a calculated column that can't translate (the default skips those best-effort; naming what you want is exact).
+   - **References already read as labels** — a reference column, including the tree **parent** and `created_by`/`updated_by`, shows the referent's name, not its id, so you rarely need a `.name` dotted path just to make one readable.
 
-   **Lead with the columns the question names** — asked "which cases were referred?" → case id + outcome + a couple of relevant fields, not the whole schema. Pull a reference's value with a **dotted path** (`residence.name`, `facility.name`). When you show a subset of a wide collection, **say what you elided** — "showing these 6 of 20 fields; ask for a different cut or the rest" — so the user knows the table is focused, not complete.
+   When you deliberately show a subset of a wide collection, **say what you elided** — "showing these 6 of 20 fields; ask for a different cut or the rest" — so the user knows the table is focused, not complete.
 4. **Write the filter in Cairn-extended CEL for the SQL surface** — see below.
 5. **Show the result** plainly — the table, the grouped numbers, or the right **chart** (see *Choosing a chart*) — and **offer the next 2–3 moves** (filter/segment further · a different cut · map it for a *where* question).
 
@@ -41,6 +42,6 @@ Reads are row-scoped server-side: a collection's `read_when` permission filters 
 ## Don't
 
 - Don't put a **reference** dotted path (`facility.name`) inside a `filter` — it doesn't translate; project/group it in `fields`/`groupBy` instead.
-- Don't omit `fields` (a default projection can pull a heavy geometry/calculated column and fail the read).
-- Don't dump every column of a wide collection into one table — project the ~5–7 the question is about and name what you left out; a 20-column table is unreadable even when it's correct.
+- Don't lean on the omitted-`fields` default as your answer — it's a capped, generic cut (identity + query-named columns, ≤ 8), not the columns the question is about. Name them.
+- Don't dump every column of a wide collection into one **explicit** `fields` list — the cap only protects the *default*; an explicit 20-column list still renders as an unreadable wall. Project the ~5–7 the question is about and name what you left out.
 - Don't pull all rows to count/bin what `aggregate_records` does in one call.
