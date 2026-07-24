@@ -20,11 +20,28 @@ Answer a question about an existing collection with the right read: a **table** 
 
    When you deliberately show a subset of a wide collection, **say what you elided** — "showing these 6 of 20 fields; ask for a different cut or the rest" — so the user knows the table is focused, not complete.
 4. **Write the filter in Cairn-extended CEL for the SQL surface** — see below.
-5. **Show the result** plainly — the table, the grouped numbers, or the right **chart** (see *Choosing a chart*) — and **offer the next 2–3 moves** (filter/segment further · a different cut · map it for a *where* question).
+5. **Say what the reader is looking at, then show it.** A read is bounded by `limit` (default 100) long before most collections run out of rows, so a table is usually a *sample* — the widget says so underneath, and **your prose must agree**: name it as a sample, give `totalCount`, and say how it's sorted ("these are 5 of 6,000 case reports, most recently updated first"). Never describe a bounded read as if it were the whole collection, and never derive a total by counting the rows you can see — `totalCount` is the count of the full matching set. For a *count* of anything, use `aggregate_records`, not the length of a page.
+6. **Show the result** plainly — the table, the grouped numbers, or the right **chart** (see *Choosing a chart*) — and **offer the next 2–3 moves** (filter/segment further · a different cut · map it for a *where* question).
 
 ## Choosing a chart
 
-`aggregate_records` returns a `chartType` and the widget renders whatever you pass — including a poor choice. The one that reliably misleads: **a breakdown across categories** (by classification, by type, by area). Render it as **horizontal bars, largest-first — not a pie.** A pie makes the differences between slices hard to read, and gets worse with more categories. Keep bars honest: the value axis starts at zero.
+**Omit `chartType`.** The server derives the encoding from the shape of your request, so the default is already the right one:
+
+| Request shape | Chart | Why |
+| --- | --- | --- |
+| `timeBin` set | **line** | A binned time axis is continuous and evenly spaced — the line *is* the trend. |
+| one `groupBy`, no `timeBin` | **bar** (horizontal, largest-first) | Length is the one encoding people compare accurately. |
+| two `groupBy` | **bar**, second path as the series split | Grouped bars keep both dimensions readable. |
+| two `metrics` | **scatter** | Two measures against each other, one point per group. |
+| `regions` | **choropleth** | Values per area. |
+| `pointField` | **heatmap** | Density of raw points. |
+
+Pass `chartType` only to override that deliberately. A choice that renders but misreads comes back with an advisory note in `notes` — **read it and fix the chart** rather than presenting the misleading one. The two that trip most often:
+
+- **A time trend as bars.** Bars read as independent categories and hide the shape of the rise and fall. `timeBin` ⇒ line.
+- **A category breakdown as a pie.** Angles are hard to compare and get worse as categories grow. Use bars, largest-first.
+
+Keep bars honest: the value axis starts at zero. Stack or split by a second dimension (`groupBy[1]`) rather than drawing several charts.
 
 ## Rows you can('t) see
 
@@ -46,3 +63,5 @@ Reads are row-scoped server-side: a collection's `read_when` permission filters 
 - Don't lean on the omitted-`fields` default as your answer — it's a capped, generic cut (identity + query-named columns, ≤ 8), not the columns the question is about. Name them.
 - Don't dump every column of a wide collection into one **explicit** `fields` list — the cap only protects the *default*; an explicit 20-column list still renders as an unreadable wall. Project the ~5–7 the question is about and name what you left out.
 - Don't pull all rows to count/bin what `aggregate_records` does in one call.
+- Don't present a bounded read as the whole picture — a page of rows, a cluster map, and a scatter cloud are all samples. Name the sample and its `totalCount`.
+- Don't pass a `chartType` you didn't need to pass, and don't ignore an advisory in `notes` — re-run with the chart it points at.
