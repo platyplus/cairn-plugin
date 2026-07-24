@@ -53,6 +53,24 @@ For each created collection, synthesize a few realistic rows from the use case a
 
 `render_collection_form` validates the rule. (Editing rules *later* in the app's simple Builder needs expert mode — but creating a collection that already has them does not.)
 
+## Decision trees (triage / classification)
+
+A triage or classification flow — eligibility screening, intake triage, risk tiering — is authored as a **`Conditional`** element in the uiSchema: an `if / elif / else` block whose branches are groups of controls, driven by Cairn-extended CEL. It is a step up from skip-logic above — a `rule` hides one field, a `Conditional` routes the form down a whole branch — and it drives toward an **outcome**. Recommend one when the user describes a branching triage, screening, or classification protocol.
+
+1. **Give the outcome a home.** Add a `classification` field to the **dataSchema** — a `oneOf`/select of the possible results (*eligible / needs review / not eligible*). v1 convention: the tree leads the user to this field (shown in the terminal branch, or pre-set with `x-default`); there is no dedicated outcome tool yet.
+2. **Author the branches in the uiSchema.** Nest `Conditional`s to build the tree; each branch has a CEL `when` plus its own `elements`, and the final `else` branch omits `when`. `compareWith` lets every branch switch on one field — a classic classification switch.
+
+```json
+{ "type": "Conditional", "branches": [
+  { "when": "has_dependents.value == 'yes' && monthly_income < 200",
+    "elements": [ { "type": "Control", "scope": "#/properties/support_tier" } ] },
+  { "elements": [ { "type": "Control", "scope": "#/properties/classification" } ] } ] }
+```
+
+3. **Preview, then show the flow.** `render_collection_form` validates the structure (`validate_ui_schema` blesses the branch semantics). Then point the user to the **Decision tree** view in the Cairn app — the form editor's *Decision tree* button opens the branching as a flow chart — so they can confirm it routes where they expect; the graph is the fastest way to spot a wrong branch. That view is read-only: author and refine the tree here (or in the app's builder), and use the graph to check it.
+
+Keep the CEL honest: branch `when`s are Cairn-extended CEL over the record's fields (compare a select with `.value`); pre-flight anything non-trivial with `validate_cel_expression`. Deep trees are fine — but if the user starts iterating heavily on the flow itself, hand off to the in-app Decision tree view rather than re-emitting the whole uiSchema each round.
+
 ## Ranking fields (ordered choice)
 
 When the respondent must put a fixed list of options into order (rank barriers by priority; preferences most→least), author a **full-permutation array** in the dataSchema and pick the reorder widget in the uiSchema — there is no `x-rank` marker, the ui-format is the signal:
