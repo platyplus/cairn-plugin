@@ -53,6 +53,24 @@ For each created collection, synthesize a few realistic rows from the use case a
 
 `render_collection_form` validates the rule. (Editing rules *later* in the app's simple Builder needs expert mode — but creating a collection that already has them does not.)
 
+## Ranking fields (ordered choice)
+
+When the respondent must put a fixed list of options into order (rank barriers by priority; preferences most→least), author a **full-permutation array** in the dataSchema and pick the reorder widget in the uiSchema — there is no `x-rank` marker, the ui-format is the signal:
+
+```json
+// dataSchema property
+{ "type": "array",
+  "items": { "type": "string", "oneOf": [
+    { "const": "cost", "title": "Cost" },
+    { "const": "distance", "title": "Distance" } ] },
+  "uniqueItems": true, "minItems": 2, "maxItems": 2 }
+
+// uiSchema Control — options.format:'rank' picks the drag-to-reorder widget
+{ "type": "Control", "scope": "#/properties/priorities", "options": { "format": "rank" } }
+```
+
+`minItems`/`maxItems` equal the option count (the answer is a complete ordering). Without `options.format: 'rank'` the same data renders as a multi-select.
+
 ## Importing an XLSForm
 
 An uploaded XLSForm *is* a collection draft — never retype it by hand.
