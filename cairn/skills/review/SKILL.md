@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use when a Cairn user wants to handle work awaiting approval — phrasings like "what's waiting for me / anything to review / approve these / check the pending entries". Working through a moderated collection's pending queue: approving or rejecting records and edits.
+description: Use when a Cairn user wants to handle work awaiting approval — phrasings like "what's waiting for me / anything to review / approve these / check the pending entries". Working through a moderated collection's pending queue — approving or rejecting records and edits.
 ---
 
 # Reviewing pending work in Cairn

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "cairn",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "MIT",
   "description": "Drive Cairn from Claude — design data collections, import and capture records, and explore them as tables, charts, and maps. Schema-driven, offline-first data for humanitarian and field teams.",
   "author": {
